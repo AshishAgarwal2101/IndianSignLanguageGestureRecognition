@@ -39,9 +39,10 @@
             this.detectEdgesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.doAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.histogramArrayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.multipleImagesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.textBox1 = new System.Windows.Forms.TextBox();
-            this.multipleImagesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.trainToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
@@ -68,7 +69,8 @@
             this.detectEdgesToolStripMenuItem,
             this.doAllToolStripMenuItem,
             this.histogramArrayToolStripMenuItem,
-            this.multipleImagesToolStripMenuItem});
+            this.multipleImagesToolStripMenuItem,
+            this.trainToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
             this.fileToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
             this.fileToolStripMenuItem.Text = "File";
@@ -136,6 +138,13 @@
             this.histogramArrayToolStripMenuItem.Text = "Histogram Array";
             this.histogramArrayToolStripMenuItem.Click += new System.EventHandler(this.histogramArrayToolStripMenuItem_Click);
             // 
+            // multipleImagesToolStripMenuItem
+            // 
+            this.multipleImagesToolStripMenuItem.Name = "multipleImagesToolStripMenuItem";
+            this.multipleImagesToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.multipleImagesToolStripMenuItem.Text = "Multiple Images";
+            this.multipleImagesToolStripMenuItem.Click += new System.EventHandler(this.multipleImagesToolStripMenuItem_Click);
+            // 
             // pictureBox1
             // 
             this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -154,12 +163,12 @@
             this.textBox1.Size = new System.Drawing.Size(284, 100);
             this.textBox1.TabIndex = 2;
             // 
-            // multipleImagesToolStripMenuItem
+            // trainToolStripMenuItem
             // 
-            this.multipleImagesToolStripMenuItem.Name = "multipleImagesToolStripMenuItem";
-            this.multipleImagesToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
-            this.multipleImagesToolStripMenuItem.Text = "Multiple Images";
-            this.multipleImagesToolStripMenuItem.Click += new System.EventHandler(this.multipleImagesToolStripMenuItem_Click);
+            this.trainToolStripMenuItem.Name = "trainToolStripMenuItem";
+            this.trainToolStripMenuItem.Size = new System.Drawing.Size(177, 22);
+            this.trainToolStripMenuItem.Text = "Train";
+            this.trainToolStripMenuItem.Click += new System.EventHandler(this.trainToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -196,6 +205,7 @@
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.ToolStripMenuItem histogramArrayToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem multipleImagesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem trainToolStripMenuItem;
     }
 }
 
