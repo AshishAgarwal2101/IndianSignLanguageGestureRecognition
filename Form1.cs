@@ -4,7 +4,20 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using AForge.Imaging.Filters;
+using AForge.Video.DirectShow;
+using AForge.Video;
 using libsvm;
+using System.Diagnostics;
+using System.Threading;
+
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Text;
+using System.Threading.Tasks;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
+using AForge.Imaging.Textures;
 
 namespace IndianSignLanguageGestureRecognition
 {
@@ -20,9 +33,11 @@ namespace IndianSignLanguageGestureRecognition
         double[,] histo1 = new double[maxNoOfImages, 36];
         int[,] totHisto = new int[maxNoOfImages, 36];
         String s = "";
+        VideoCaptureDevice videoSource;
         String[] sss = new String[maxNoOfImages];
-        int noOfImages = 0, k, letter;
+        int noOfImages = 0, k, letter, numFrames = 0;
         C_SVC model;
+        Stopwatch stopwatch = new Stopwatch();
 
         public Form1()
         {
@@ -37,25 +52,44 @@ namespace IndianSignLanguageGestureRecognition
             {
                 orgImage = new Bitmap(od.FileName);
                 orgImage = new Bitmap(orgImage, new Size(400, 400));
-                orgImHeight = 400;
-                orgImWidth = 400;
                 imageGot = new Bitmap(orgImage);
-                pictureBox1.Image = imageGot;
+                //pictureBox1.Image = imageGot;
                 //work on image
-                detectSkin();
-                fillHoles();
-                extractLargestBlob();
-                andImages();
-                twoHxtwoH();
-                edgeDetect();
-                //making svm_node
-                svm_node[] svmNode = nodeMaking();
-                var pred_y = model.Predict(svmNode);
-                MessageBox.Show((char)(pred_y+64) + "");
+                testing();
 
             }
         }
-
+        private void testing()
+        {
+            if (InvokeRequired)
+            {
+                Invoke((MethodInvoker)delegate {
+                    detectSkin();
+                    fillHoles();
+                    extractLargestBlob();
+                    andImages();
+                    twoHxtwoH();
+                    edgeDetect();
+                    //making svm_node
+                    svm_node[] svmNode = nodeMaking();
+                    var pred_y = model.Predict(svmNode);
+                    //MessageBox.Show((char)(pred_y + 64) + "");
+                    label1.Text = (char)(pred_y + 64) + "";
+                    pictureBox1.Image = imageGot;
+                });
+            }
+            /*detectSkin();
+            fillHoles();
+            extractLargestBlob();
+            andImages();
+            twoHxtwoH();
+            edgeDetect();
+            //making svm_node
+            svm_node[] svmNode = nodeMaking();
+            var pred_y = model.Predict(svmNode);
+            //MessageBox.Show((char)(pred_y + 64) + "");
+            textBox1.Text = textBox1.Text + (char)(pred_y + 64) + "";*/
+        }
         private svm_node[] nodeMaking()
         {
             String st = "";
@@ -202,7 +236,8 @@ namespace IndianSignLanguageGestureRecognition
             imageGot = filter.Apply(imageGot);
 
 
-            int[] der1 = new int[400];
+            //palm extraction(without band) ------------------
+            /*int[] der1 = new int[400];
             int[] der2 = new int[400];
             Color clr = Color.FromArgb(Color.White.ToArgb());
             Color clr1 = Color.FromArgb(Color.Black.ToArgb());
@@ -217,8 +252,8 @@ namespace IndianSignLanguageGestureRecognition
                         skinArray[j]++;
                 }
             }
-            //palm extraction(without band) ------------------
-            /*for (int i = 0; i < imgHeight; i++)
+            
+            for (int i = 0; i < imgHeight; i++)
             {
                 //sc = sc + skinArray[i] + "   ";
                 if (i < (imgHeight - 1))
@@ -284,9 +319,55 @@ namespace IndianSignLanguageGestureRecognition
         {
             imageGot = new Bitmap(imageGot);
             Bitmap newImage = new Bitmap(orgImage);
+
+            int imgHeight = imageGot.Height;
+            int imgWidth = imageGot.Width;
+
+            var rect = new Rectangle(0, 0, imgWidth, imgHeight);
+            var data1 = imageGot.LockBits(rect, ImageLockMode.ReadWrite, imageGot.PixelFormat);
+            var data2 = newImage.LockBits(rect, ImageLockMode.ReadWrite, newImage.PixelFormat);
+            var depth1 = Bitmap.GetPixelFormatSize(data1.PixelFormat) / 8; //bytes per pixel
+            var depth2 = Bitmap.GetPixelFormatSize(data2.PixelFormat) / 8;
+
+            var buffer1 = new byte[data1.Width * data1.Height * depth1];
+            var buffer2 = new byte[data2.Width * data2.Height * depth2];
+
+            //copy pixels to buffer
+            Marshal.Copy(data1.Scan0, buffer1, 0, buffer1.Length);
+            Marshal.Copy(data2.Scan0, buffer2, 0, buffer2.Length);
+            ProcessAndImages(buffer1, buffer2, 0, 0, data1.Width, data1.Height, data1.Width, depth1, depth2);
+            /*System.Threading.Tasks.Parallel.Invoke(
+                () =>
+                {
+                    //upper-left
+                    Process(buffer, 0, 0, data.Width / 2, data.Height / 2, data.Width, depth);
+                },
+                () =>
+                {
+                    //upper-right
+                    Process(buffer, data.Width / 2, 0, data.Width, data.Height / 2, data.Width, depth);
+                },
+                () =>
+                {
+                    //lower-left
+                    Process(buffer, 0, data.Height / 2, data.Width / 2, data.Height, data.Width, depth);
+                },
+                () =>
+                {
+                    //lower-right
+                    Process(buffer, data.Width / 2, data.Height / 2, data.Width, data.Height, data.Width, depth);
+                }
+            );*/
+
+            //Copy the buffer back to image
+            Marshal.Copy(buffer1, 0, data1.Scan0, buffer1.Length);
+            Marshal.Copy(buffer2, 0, data2.Scan0, buffer2.Length);
+
+            imageGot.UnlockBits(data1);
+            newImage.UnlockBits(data2);
             //pictureBox1.Image = orgImage;
             //AND orgImage and imageGot
-            for (int i = 0; i < orgImWidth; i++)
+            /*for (int i = 0; i < orgImWidth; i++)
             {
                 for (int j = 0; j < orgImHeight; j++)
                 {
@@ -301,7 +382,7 @@ namespace IndianSignLanguageGestureRecognition
                     newImage.SetPixel(i, j, Color.FromArgb(r & r1, g & g1, b & b1));
 
                 }
-            }
+            }*/
             imageGot = newImage;
             pictureBox1.Image = imageGot;
         }
@@ -312,8 +393,48 @@ namespace IndianSignLanguageGestureRecognition
             imageGot = new Bitmap(imageGot);
             imageGot = biggestBlob.Apply(imageGot);
             //pictureBox1.Image = imageGot;
-            Color blacks = Color.FromArgb(Color.Black.ToArgb());
+
             imageGot = new Bitmap(imageGot, new Size(200, 200));
+            int imgHeight = imageGot.Height;
+            int imgWidth = imageGot.Width;
+
+            var rect = new Rectangle(0, 0, imgWidth, imgHeight);
+            var data = imageGot.LockBits(rect, ImageLockMode.ReadWrite, imageGot.PixelFormat);
+            var depth = Bitmap.GetPixelFormatSize(data.PixelFormat) / 8; //bytes per pixel
+
+            var buffer = new byte[data.Width * data.Height * depth];
+
+            //copy pixels to buffer
+            Marshal.Copy(data.Scan0, buffer, 0, buffer.Length);
+            ProcessTwoHxTwoH(buffer, 0, 0, data.Width, data.Height, data.Width, depth);
+            /*System.Threading.Tasks.Parallel.Invoke(
+                () =>
+                {
+                    //upper-left
+                    Process(buffer, 0, 0, data.Width / 2, data.Height / 2, data.Width, depth);
+                },
+                () =>
+                {
+                    //upper-right
+                    Process(buffer, data.Width / 2, 0, data.Width, data.Height / 2, data.Width, depth);
+                },
+                () =>
+                {
+                    //lower-left
+                    Process(buffer, 0, data.Height / 2, data.Width / 2, data.Height, data.Width, depth);
+                },
+                () =>
+                {
+                    //lower-right
+                    Process(buffer, data.Width / 2, data.Height / 2, data.Width, data.Height, data.Width, depth);
+                }
+            );*/
+
+            //Copy the buffer back to image
+            Marshal.Copy(buffer, 0, data.Scan0, buffer.Length);
+
+            imageGot.UnlockBits(data);
+            /*Color blacks = Color.FromArgb(Color.Black.ToArgb());
             for (int i = 0; i < 200; i++)
             {
                 for (int j = 0; j < 200; j++)
@@ -323,7 +444,7 @@ namespace IndianSignLanguageGestureRecognition
                         imageGot.SetPixel(i, j, blacks);
                     }
                 }
-            }
+            }*/
             pictureBox1.Image = imageGot;
         }
 
@@ -343,7 +464,71 @@ namespace IndianSignLanguageGestureRecognition
             imageGot = fillHoles.Apply(imageGot);
             pictureBox1.Image = imageGot;
         }
+        void ProcessAndImages(byte[] buffer1, byte[] buffer2, int x, int y, int endx, int endy, int width, int depth1, int depth2)
+        {
+            for (int i = x; i < endx; i++)
+            {
+                for (int j = y; j < endy; j++)
+                {
+                    var offset1 = ((j * width) + i) * depth1;
+                    var offset2 = ((j * width) + i) * depth2;
+                    var b1 = buffer1[offset1 + 0];
+                    var g1 = buffer1[offset1 + 1];
+                    var r1 = buffer1[offset1 + 2];
+                    var b = buffer2[offset1 + 0];
+                    var g = buffer2[offset1 + 1];
+                    var r = buffer2[offset1 + 2];
+                    buffer2[offset2 + 0] = (byte) (b & b1);
+                    buffer2[offset2 + 1] = (byte)(g & g1);
+                    buffer2[offset2 + 2] = (byte)(r & r1);
+                }
 
+            }
+
+        }
+        void ProcessTwoHxTwoH(byte[] buffer, int x, int y, int endx, int endy, int width, int depth)
+        {
+            for (int i = x; i < endx; i++)
+            {
+                for (int j = y; j < endy; j++)
+                {
+                    var offset = ((j * width) + i) * depth;
+                    var b = buffer[offset + 0];
+                    var g = buffer[offset + 1];
+                    var r = buffer[offset + 2];
+                    if (!(b > 0 || g > 0 || r > 0))
+                    {
+                        buffer[offset + 0] = buffer[offset + 1] = buffer[offset + 2] = 0;
+                    }
+                }
+
+            }
+        }
+        void ProcessDetectSkin(byte[] buffer, int x, int y, int endx, int endy, int width, int depth)
+        {
+            for (int i = x; i < endx; i++)
+            {
+                for (int j = y; j < endy; j++)
+                {
+                    var offset = ((j * width) + i) * depth;
+                    var b = buffer[offset + 0];
+                    var g = buffer[offset + 1];
+                    var r = buffer[offset + 2];
+                    int max = Math.Max((Math.Max(r, g)), b);
+                    int min = Math.Min((Math.Min(r, g)), b);
+                    if ((r > 95 && g > 40 && b > 20) && ((max - min) > 15) && (r > g && r > b && (r - g) > 15))
+                    {
+                        buffer[offset + 0] = buffer[offset + 1] = buffer[offset + 2] = 255;
+                    }
+                    else
+                    {
+                        buffer[offset + 0] = buffer[offset + 1] = buffer[offset + 2] = 0;
+                    }
+                }
+
+            }
+
+        }
         private void detectSkin()
         {
             //skin detection
@@ -352,7 +537,44 @@ namespace IndianSignLanguageGestureRecognition
             int imgHeight = imageGot.Height;
             int imgWidth = imageGot.Width;
             String sc = "";
-            for (int i = 0; i < imgWidth; i++)
+
+            var rect = new Rectangle(0, 0, imgWidth, imgHeight);
+            var data = imageGot.LockBits(rect, ImageLockMode.ReadWrite, imageGot.PixelFormat);
+            var depth = Bitmap.GetPixelFormatSize(data.PixelFormat) / 8; //bytes per pixel
+
+            var buffer = new byte[data.Width * data.Height * depth];
+
+            //copy pixels to buffer
+            Marshal.Copy(data.Scan0, buffer, 0, buffer.Length);
+            ProcessDetectSkin(buffer, 0, 0, data.Width, data.Height, data.Width, depth);
+            /*System.Threading.Tasks.Parallel.Invoke(
+                () =>
+                {
+                    //upper-left
+                    Process(buffer, 0, 0, data.Width / 2, data.Height / 2, data.Width, depth);
+                },
+                () =>
+                {
+                    //upper-right
+                    Process(buffer, data.Width / 2, 0, data.Width, data.Height / 2, data.Width, depth);
+                },
+                () =>
+                {
+                    //lower-left
+                    Process(buffer, 0, data.Height / 2, data.Width / 2, data.Height, data.Width, depth);
+                },
+                () =>
+                {
+                    //lower-right
+                    Process(buffer, data.Width / 2, data.Height / 2, data.Width, data.Height, data.Width, depth);
+                }
+            );*/
+
+            //Copy the buffer back to image
+            Marshal.Copy(buffer, 0, data.Scan0, buffer.Length);
+
+            imageGot.UnlockBits(data);
+            /*for (int i = 0; i < imgWidth; i++)
             {
 
                 //skinArray[i] = 0;
@@ -377,19 +599,115 @@ namespace IndianSignLanguageGestureRecognition
                     }
 
                 }
-            }
+            }*/
 
             GrayscaleBT709 gs = new GrayscaleBT709();
             imageGot = gs.Apply(imageGot);
             Threshold th = new Threshold();
             imageGot = th.Apply(imageGot);
-            pictureBox1.Image = imageGot;
-            textBox1.Text = sc;
+        }
+        private void video_NewFrame(object sender, NewFrameEventArgs eventArgs)
+        {
+            
+            Bitmap newFrame = new Bitmap(eventArgs.Frame, new Size(400,400));
+            Bitmap ab = new Bitmap(newFrame);
+            orgImage = new Bitmap(newFrame);
+            pictureBox2.Image = newFrame;
+            numFrames++;
+            if (numFrames % 50 == 0)
+            {
+
+                imageGot = ab;
+                pictureBox1.Image = newFrame;
+                testing();
+                
+            }
         }
 
         private void trainToolStripMenuItem_Click(object sender, EventArgs e)
         {
             svm();
+        }
+
+        private void recordVideoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            //FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            VideoCaptureDeviceForm captureDevice = new VideoCaptureDeviceForm();
+            if (captureDevice.ShowDialog(this) == DialogResult.OK)
+            {
+                
+                videoSource = captureDevice.VideoDevice;
+                videoSource.NewFrame += new NewFrameEventHandler(video_NewFrame);
+                videoSource.Start();
+            }
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void newImageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog od = new OpenFileDialog();
+            var val = od.ShowDialog();
+            if (val == DialogResult.OK)
+            {
+                orgImage = new Bitmap(od.FileName);
+                orgImage = new Bitmap(orgImage, new Size(400, 400));
+                imageGot = new Bitmap(orgImage);
+            }
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click(object sender, EventArgs e) //train
+        {
+            svm();
+        }
+
+        private void button4_Click(object sender, EventArgs e) //test with static data
+        {
+            OpenFileDialog od = new OpenFileDialog();
+            var val = od.ShowDialog();
+            if (val == DialogResult.OK)
+            {
+                orgImage = new Bitmap(od.FileName);
+                orgImage = new Bitmap(orgImage, new Size(400, 400));
+                imageGot = new Bitmap(orgImage);
+                //pictureBox1.Image = imageGot;
+                //work on image
+                testing();
+
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e) //start video
+        {
+            //FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            VideoCaptureDeviceForm captureDevice = new VideoCaptureDeviceForm();
+            if (captureDevice.ShowDialog(this) == DialogResult.OK)
+            {
+
+                videoSource = captureDevice.VideoDevice;
+                videoSource.NewFrame += new NewFrameEventHandler(video_NewFrame);
+                videoSource.Start();
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e) //train with new data
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            videoSource.SignalToStop();
+            //stopwatch.Stop();
+            numFrames = 0;
         }
 
         private void multipleImagesToolStripMenuItem_Click(object sender, EventArgs e)
@@ -451,7 +769,6 @@ namespace IndianSignLanguageGestureRecognition
                     copy[z] = sss[z];
 
             }
-            textBox1.Text = ss;
             System.IO.File.WriteAllLines(@"D:\results\Histo\res.txt", copy);
             svm();
         }
@@ -520,7 +837,7 @@ namespace IndianSignLanguageGestureRecognition
         }
         void svm()
         {
-            var pro = ProblemHelper.ReadProblem(@"D:\results\Histo\res.txt");
+            var pro = ProblemHelper.ReadProblem("res.txt");
             //var c = pro.x[0];
             //MessageBox.Show(c[0].index + "    " + c[0].value);
             model = new C_SVC(pro, KernelHelper.RadialBasisFunctionKernel(8), 32.0);

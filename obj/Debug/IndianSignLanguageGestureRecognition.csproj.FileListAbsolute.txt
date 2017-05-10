@@ -13,3 +13,17 @@ C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureR
 C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\obj\Debug\IndianSignLanguageGestureRecognition.exe
 C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\obj\Debug\IndianSignLanguageGestureRecognition.pdb
 C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\obj\Debug\IndianSignLanguageGestureRecognition.csprojResolveAssemblyReference.cache
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\IKVM.OpenJDK.Charsets.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\IKVM.OpenJDK.Core.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\IKVM.OpenJDK.Security.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\IKVM.OpenJDK.SwingAWT.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\IKVM.OpenJDK.Text.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\IKVM.OpenJDK.Util.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\IKVM.OpenJDK.XML.API.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\IKVM.Runtime.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\libsvm.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\LIBSVM.NET.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\AForge.Video.DirectShow.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\AForge.Video.dll
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\AForge.Video.xml
+C:\Users\Ashish\documents\visual studio 2017\Projects\IndianSignLanguageGestureRecognition\IndianSignLanguageGestureRecognition\bin\Debug\AForge.Video.DirectShow.xml
