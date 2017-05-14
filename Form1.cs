@@ -35,13 +35,19 @@ namespace IndianSignLanguageGestureRecognition
         String s = "";
         VideoCaptureDevice videoSource;
         String[] sss = new String[maxNoOfImages];
-        int noOfImages = 0, k, letter, numFrames = 0;
+        int noOfImages = 0, k, letter, numFrames = 0, imgNo=1;
         C_SVC model;
         Stopwatch stopwatch = new Stopwatch();
+        Bitmap[] imagesClicked = new Bitmap[6];
+        int[] imagesSelected = new int[6];
 
         public Form1()
         {
             InitializeComponent();
+            button6.Visible = false;
+            label2.Visible = false;
+            textBox1.Visible = false;
+    
         }
 
         private void openImageToolStripMenuItem_Click(object sender, EventArgs e)
@@ -55,7 +61,7 @@ namespace IndianSignLanguageGestureRecognition
                 imageGot = new Bitmap(orgImage);
                 //pictureBox1.Image = imageGot;
                 //work on image
-                testing();
+                testing1();
 
             }
         }
@@ -89,6 +95,21 @@ namespace IndianSignLanguageGestureRecognition
             var pred_y = model.Predict(svmNode);
             //MessageBox.Show((char)(pred_y + 64) + "");
             textBox1.Text = textBox1.Text + (char)(pred_y + 64) + "";*/
+        }
+        private void testing1()
+        {
+            detectSkin();
+            fillHoles();
+            extractLargestBlob();
+            andImages();
+            twoHxtwoH();
+            edgeDetect();
+            //making svm_node
+            svm_node[] svmNode = nodeMaking();
+            var pred_y = model.Predict(svmNode);
+            //MessageBox.Show((char)(pred_y + 64) + "");
+            label1.Text = (char)(pred_y + 64) + "";
+            pictureBox1.Image = imageGot;
         }
         private svm_node[] nodeMaking()
         {
@@ -612,15 +633,77 @@ namespace IndianSignLanguageGestureRecognition
             Bitmap newFrame = new Bitmap(eventArgs.Frame, new Size(400,400));
             Bitmap ab = new Bitmap(newFrame);
             orgImage = new Bitmap(newFrame);
-            pictureBox2.Image = newFrame;
+            pictureBox2.Image = newFrame;//for video
             numFrames++;
-            if (numFrames % 50 == 0)
+            if (numFrames % 30 == 0)
             {
 
                 imageGot = ab;
-                pictureBox1.Image = newFrame;
+                pictureBox1.Image = newFrame;//single image
                 testing();
                 
+            }
+        }
+        private void video_NewFrameTraining(object sender, NewFrameEventArgs eventArgs)
+        {
+
+            Bitmap newFrame1 = new Bitmap(eventArgs.Frame, new Size(400, 400));
+            Bitmap newFrame = new Bitmap(newFrame1, new Size(200, 200));
+            Bitmap ab = new Bitmap(newFrame);
+            orgImage = new Bitmap(newFrame1);
+            pictureBox2.Image = newFrame1;//for video
+            numFrames++;
+            if (numFrames % 20 == 0 && imgNo <= 6)
+            {
+               
+                switch(imgNo)
+                {
+                    case 1:
+                        pictureBox3.Image = newFrame;
+                        break;
+                    case 2:
+                        pictureBox4.Image = newFrame;
+                        break;
+                    case 3:
+                        pictureBox5.Image = newFrame;
+                        break;
+                    case 4:
+                        pictureBox6.Image = newFrame;
+                        break;
+                    case 5:
+                        pictureBox7.Image = newFrame;
+                        break;
+                    case 6:
+                        pictureBox8.Image = newFrame;
+                        break;
+                    default:
+                        break;
+                }
+                imagesSelected[imgNo-1] = 1;
+                imagesClicked[imgNo-1] = new Bitmap(ab);
+                imgNo++;
+            }
+            else if(imgNo > 6)
+            {
+                MessageBox.Show("Now click on the images you wish to select to train the model on and enter the letter (in small case) it represents. Then click on Train button");
+                videoSource.SignalToStop();
+            }
+        }
+        private void takeVideo()
+        {
+            //make a messagebox saying video will start in 20 seconds for training
+            MessageBox.Show("You have to make a gesture.Once done, 6 images extracted from your video will be shown. Click on the image which is good enough and enter the letter you signed for.");    
+            //start taking video and pick 6 images
+            label2.Visible = true;
+            textBox1.Visible = true;
+            button6.Visible = true;
+            VideoCaptureDeviceForm captureDevice = new VideoCaptureDeviceForm();
+            if (captureDevice.ShowDialog(this) == DialogResult.OK)
+            {
+
+                videoSource = captureDevice.VideoDevice;
+                videoSource.NewFrame += new NewFrameEventHandler(video_NewFrameTraining);
+                videoSource.Start();
             }
         }
 
@@ -671,6 +754,7 @@ namespace IndianSignLanguageGestureRecognition
 
         private void button4_Click(object sender, EventArgs e) //test with static data
         {
+            svm();
             OpenFileDialog od = new OpenFileDialog();
             var val = od.ShowDialog();
             if (val == DialogResult.OK)
@@ -680,7 +764,7 @@ namespace IndianSignLanguageGestureRecognition
                 imageGot = new Bitmap(orgImage);
                 //pictureBox1.Image = imageGot;
                 //work on image
-                testing();
+                testing1();
 
             }
         }
@@ -688,6 +772,14 @@ namespace IndianSignLanguageGestureRecognition
         private void button2_Click(object sender, EventArgs e) //start video
         {
             //FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            pictureBox1.Image = null;
+            pictureBox2.Image = null;
+            pictureBox3.Image=null;
+            pictureBox4.Image = null;
+            pictureBox5.Image = null;
+            pictureBox6.Image = null;
+            pictureBox7.Image = null;
+            pictureBox8.Image = null;
             VideoCaptureDeviceForm captureDevice = new VideoCaptureDeviceForm();
             if (captureDevice.ShowDialog(this) == DialogResult.OK)
             {
@@ -698,9 +790,156 @@ namespace IndianSignLanguageGestureRecognition
             }
         }
 
+        private void pictureBox7_Click(object sender, EventArgs e)
+        {
+            if (imagesSelected[4] == 1)//original iamge in the piucture box, so toggle
+            {
+                pictureBox7.Image = Image.FromFile("checkbox.gif");
+                imagesSelected[4] = 0;
+            }
+            else
+            {
+                pictureBox7.Image = imagesClicked[4];
+                imagesSelected[4] = 1;
+            }
+        }
+
+        private void pictureBox8_Click(object sender, EventArgs e)
+        {
+            if (imagesSelected[5] == 1)//original iamge in the piucture box, so toggle
+            {
+                pictureBox8.Image = Image.FromFile("checkbox.gif");
+                imagesSelected[5] = 0;
+            }
+            else
+            {
+                pictureBox8.Image = imagesClicked[5];
+                imagesSelected[5] = 1;
+            }
+        }
+
+        private void pictureBox3_Click(object sender, EventArgs e)
+        {
+            if(imagesSelected[0] == 1)//original iamge in the piucture box, so toggle
+            {
+                pictureBox3.Image = Image.FromFile("checkbox.gif");
+                imagesSelected[0] = 0;
+            }
+            else
+            {
+                pictureBox3.Image = imagesClicked[0];
+                imagesSelected[0] = 1;
+            }
+            
+        }
+
+        private void pictureBox4_Click(object sender, EventArgs e)
+        {
+            if (imagesSelected[1] == 1)//original iamge in the piucture box, so toggle
+            {
+                pictureBox4.Image = Image.FromFile("checkbox.gif");
+                imagesSelected[1] = 0;//imageSelected= 0 means you include it in the training set
+            }
+            else
+            {
+                pictureBox4.Image = imagesClicked[1];
+                imagesSelected[1] = 1;
+            }
+        }
+
+        private void pictureBox5_Click(object sender, EventArgs e)
+        {
+            if (imagesSelected[2] == 1)//original iamge in the piucture box, so toggle
+            {
+                pictureBox5.Image = Image.FromFile("checkbox.gif");
+                imagesSelected[2] = 0;
+            }
+            else
+            {
+                pictureBox5.Image = imagesClicked[2];
+                imagesSelected[2] = 1;
+            }
+        }
+
+        private void pictureBox6_Click(object sender, EventArgs e)
+        {
+            if (imagesSelected[3] == 1)//original iamge in the piucture box, so toggle
+            {
+                pictureBox6.Image = Image.FromFile("checkbox.gif");
+                imagesSelected[3] = 0;
+            }
+            else
+            {
+                pictureBox6.Image = imagesClicked[3];
+                imagesSelected[3] = 1;
+            }
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void button6_Click(object sender, EventArgs e)
+        {
+            char letterGot = textBox1.Text[0];
+            k = 0;
+            String ss = "";
+            int c = 0;
+            letter = letterGot - 96;//small case
+            String[] files = Directory.GetFiles((@"D:\results\Bitmaps\" + (char)(letter + 64)));
+            String name = files[files.Length - 1];
+            String fileName = Path.GetFileName(name);
+            int pos = fileName.IndexOf('.');
+            int letterNo = int.Parse(fileName.Substring(0, pos));
+            for (int i=0;i<6;i++)
+            {
+                if(imagesSelected[i]==0)//means selected
+                {
+                    orgImage = new Bitmap(imagesClicked[i], new Size(400, 400));
+                    imageGot = new Bitmap(orgImage);
+                    detectSkin();
+                    fillHoles();
+                    extractLargestBlob();
+                    andImages();
+                    twoHxtwoH();
+                    edgeDetect();
+                    histoArray();
+                    k++;
+                    ss = ss + letter + " ";
+                    sss[c] = sss[c] + letter + " ";
+                    int j = 0;
+                    for (j = 0; j < 35; j++)
+                    {
+                        ss = ss + (j + 1) + ":" + histo1[c, j] + "  ";
+                        sss[c] = sss[c] + (j + 1) + ":" + histo1[c, j] + " ";
+                    }
+                    ss = ss + (j + 1) + ":" + histo1[c, j] + "  ";
+                    sss[c] = sss[c] + (j + 1) + ":" + histo1[c, j];
+                    ss = ss + Environment.NewLine;
+                    ++c;
+                    using (StreamWriter sw = File.AppendText("res.txt"))
+                    {
+                        sw.Write(ss);
+                    }
+                    imageGot.Save(@"D:\results\Bitmaps\" + (char)(letter + 64) + "\\" + (++letterNo) + ".jpg");
+                }
+            }
+        }
+
         private void button5_Click(object sender, EventArgs e) //train with new data
         {
-
+            pictureBox1.Image = null;
+            pictureBox2.Image = null;
+            pictureBox3.Image = null;
+            pictureBox4.Image = null;
+            pictureBox5.Image = null;
+            pictureBox6.Image = null;
+            pictureBox7.Image = null;
+            pictureBox8.Image = null;
+            imgNo = 1;
+            label1.Text = " ";
+            takeVideo();
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -708,6 +947,7 @@ namespace IndianSignLanguageGestureRecognition
             videoSource.SignalToStop();
             //stopwatch.Stop();
             numFrames = 0;
+            label1.Text = " ";
         }
 
         private void multipleImagesToolStripMenuItem_Click(object sender, EventArgs e)
